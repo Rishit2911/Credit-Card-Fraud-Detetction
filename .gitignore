@@ -1,0 +1,11 @@
+# Dataset files (Too large for GitHub)
+*.csv
+*.zip
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+.virtual_documents/
+
+# Python cache
+__pycache__/
+*.pyc
