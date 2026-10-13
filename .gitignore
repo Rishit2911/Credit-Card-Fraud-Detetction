@@ -9,3 +9,20 @@
 # Python cache
 __pycache__/
 *.pyc
+
+# Environment & Secrets
+.env
+.env.local
+
+# Virtual Environment
+.venv/
+env/
+venv/
+
+# Databases
+*.db
+*.sqlite3
+
+# Frontend build & dependencies
+frontend/node_modules/
+frontend/dist/
