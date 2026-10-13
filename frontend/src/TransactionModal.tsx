@@ -20,22 +20,24 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Transaction Audit Record</h2>
-            <span className="brand-badge">{transaction.transaction_id}</span>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>Transaction Details</h2>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              Ref: {transaction.transaction_id}
+            </span>
           </div>
           <button className="close-btn" onClick={onClose} title="Close modal">
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        <div className="key-value-list">
+        <div className="key-value-list" style={{ marginBottom: '18px' }}>
           <div className="kv-item">
             <div className="kv-label"><DollarSign size={12} style={{ display: 'inline' }} /> Amount</div>
             <div className="kv-value">${transaction.amount.toFixed(2)}</div>
           </div>
           <div className="kv-item">
-            <div className="kv-label"><Clock size={12} style={{ display: 'inline' }} /> Timestamp</div>
-            <div className="kv-value" style={{ fontSize: '0.8rem' }}>
+            <div className="kv-label"><Clock size={12} style={{ display: 'inline' }} /> Date & Time</div>
+            <div className="kv-value" style={{ fontSize: '0.82rem' }}>
               {new Date(transaction.timestamp).toLocaleString()}
             </div>
           </div>
@@ -48,8 +50,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             <div className="kv-value">{transaction.category} •• {transaction.card_last_four}</div>
           </div>
           <div className="kv-item">
-            <div className="kv-label">Verdict</div>
-            <div className="kv-value" style={{ color: transaction.is_fraud ? 'var(--accent-ruby)' : 'var(--accent-emerald)' }}>
+            <div className="kv-label">Assessment Status</div>
+            <div className="kv-value" style={{ color: transaction.is_fraud ? 'var(--rose-text)' : 'var(--emerald-text)' }}>
               {transaction.prediction}
             </div>
           </div>
@@ -59,22 +61,24 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </div>
         </div>
 
-        <div style={{ background: 'var(--bg-input)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '20px' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-subtle)', textTransform: 'uppercase', marginBottom: '6px' }}>Audit Log & Reason</div>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{transaction.notes || 'No extra notes recorded.'}</p>
+        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '20px' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '4px' }}>
+            Audit Log & Assessment Notes
+          </div>
+          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>{transaction.notes || 'No extra notes recorded.'}</p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--text-subtle)' }}>
-            <Database size={14} color="var(--accent-cyan)" />
-            <span>PostgreSQL Primary Key: ID #{transaction.id}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+            <Database size={13} color="#64748b" />
+            <span>Database Record ID #{transaction.id}</span>
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
               type="button"
               className="page-btn"
-              style={{ color: 'var(--accent-ruby)', borderColor: 'rgba(244, 63, 94, 0.4)' }}
+              style={{ color: 'var(--rose-main)', borderColor: 'var(--rose-border)', background: 'var(--rose-bg)' }}
               onClick={() => onDelete(transaction.id)}
             >
               Delete Record

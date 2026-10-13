@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Shield, RefreshCw, Cpu, CheckCircle, AlertCircle } from 'lucide-react';
+import { Shield, RefreshCw, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { SummaryCards } from './SummaryCards';
 import { TransactionForm } from './TransactionForm';
 import { PredictionResult } from './PredictionResult';
@@ -26,6 +26,18 @@ export const App: React.FC = () => {
 
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
+  const [currentTime, setCurrentTime] = useState<string>('');
+
+  // Live UTC Clock for Financial Desk
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(now.toUTCString().slice(17, 25) + ' UTC');
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // API Base URL (uses relative /api which proxies to http://127.0.0.1:8000 via Vite)
   const API_URL = '/api';
@@ -158,41 +170,43 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-layout">
-      {/* Sticky Header */}
+      {/* App Header */}
       <header className="app-header">
         <div className="container header-inner">
           <div className="brand-wrapper">
             <div className="brand-icon">
-              <Shield size={24} />
+              <Shield size={20} />
             </div>
             <div className="brand-title-group">
-              <h1>FraudShield Enterprise</h1>
+              <h1>CardWatch Risk Ops</h1>
               <div className="brand-badge">
-                <Cpu size={12} style={{ color: 'var(--accent-cyan)' }} />
-                <span>AI Scikit-Learn Model &bull; PostgreSQL 18</span>
+                <span>Transaction Screening &bull; Audit Trail</span>
               </div>
             </div>
           </div>
 
           <div className="header-status-group">
+            {currentTime && (
+              <div className="header-clock-pill" title="Live UTC Financial Clock">
+                <Clock size={13} />
+                <span>{currentTime}</span>
+              </div>
+            )}
+
             <div className="status-pill">
               <div
                 className="pulse-dot"
                 style={{
                   backgroundColor:
-                    backendStatus === 'connected' ? 'var(--accent-emerald)' : 'var(--accent-ruby)',
-                  boxShadow:
-                    backendStatus === 'connected'
-                      ? '0 0 10px var(--accent-emerald)'
-                      : '0 0 10px var(--accent-ruby)',
+                    backendStatus === 'connected' ? 'var(--emerald-main)' : 'var(--rose-main)',
                 }}
               ></div>
               <span>
                 {backendStatus === 'connected'
-                  ? 'FastAPI & PostgreSQL Online'
+                  ? 'System Operational'
                   : backendStatus === 'checking'
                   ? 'Connecting...'
-                  : 'Backend Offline'}
+                  : 'Backend Disconnected'}
               </span>
             </div>
 
@@ -200,10 +214,10 @@ export const App: React.FC = () => {
               type="button"
               className="page-btn"
               onClick={refreshAll}
-              title="Sync with database"
+              title="Sync latest transactions"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              <RefreshCw size={14} /> Sync
+              <RefreshCw size={14} /> Refresh
             </button>
           </div>
         </div>
@@ -223,30 +237,34 @@ export const App: React.FC = () => {
               fontSize: '0.86rem',
               fontWeight: 500,
               backgroundColor:
-                toastMessage.type === 'success'
-                  ? 'rgba(16, 185, 129, 0.15)'
-                  : 'rgba(244, 63, 94, 0.15)',
+                toastMessage.type === 'success' ? 'var(--emerald-bg)' : 'var(--rose-bg)',
               border: `1px solid ${
-                toastMessage.type === 'success'
-                  ? 'rgba(16, 185, 129, 0.4)'
-                  : 'rgba(244, 63, 94, 0.4)'
+                toastMessage.type === 'success' ? 'var(--emerald-border)' : 'var(--rose-border)'
               }`,
-              color: toastMessage.type === 'success' ? '#a7f3d0' : '#fecdd3',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+              color: toastMessage.type === 'success' ? 'var(--emerald-text)' : 'var(--rose-text)',
+              boxShadow: '0 2px 4px rgba(15, 23, 42, 0.05)',
             }}
           >
             {toastMessage.type === 'success' ? (
-              <CheckCircle size={18} color="#10b981" />
+              <CheckCircle size={18} color="var(--emerald-main)" />
             ) : (
-              <AlertCircle size={18} color="#f43f5e" />
+              <AlertCircle size={18} color="var(--rose-main)" />
             )}
             <span>{toastMessage.text}</span>
           </div>
         )}
 
-        {/* 1. Summary Cards */}
+        {/* 1. Summary Cards with Click-to-Filter */}
         <section aria-label="Dashboard Overview">
-          <SummaryCards stats={stats} loading={statsLoading} />
+          <SummaryCards
+            stats={stats}
+            loading={statsLoading}
+            currentFilter={statusFilter}
+            onSelectFilter={(newFilter) => {
+              setStatusFilter(newFilter);
+              setPage(1);
+            }}
+          />
         </section>
 
         {/* 2. Main Two-Column Row: Input Form & Prediction Result */}

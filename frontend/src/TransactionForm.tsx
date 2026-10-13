@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Zap, ShieldAlert, Sparkles } from 'lucide-react';
+import { Send, RotateCcw, Wifi } from 'lucide-react';
 import type { TransactionFormData } from './types';
 
 interface TransactionFormProps {
@@ -8,7 +8,7 @@ interface TransactionFormProps {
 }
 
 export const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, loading }) => {
-  const [formData, setFormData] = useState<TransactionFormData>({
+  const initialData: TransactionFormData = {
     amount: '149.50',
     merchant: 'Amazon Retail',
     card_last_four: '4242',
@@ -17,8 +17,9 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, load
     is_foreign: false,
     distance_km: 12,
     pin_used: true,
-  });
+  };
 
+  const [formData, setFormData] = useState<TransactionFormData>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = (): boolean => {
@@ -45,6 +46,18 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, load
     e.preventDefault();
     if (validate()) {
       onSubmit(formData);
+    }
+  };
+
+  const handleReset = () => {
+    setFormData(initialData);
+    setErrors({});
+  };
+
+  const setQuickAmount = (val: string) => {
+    setFormData({ ...formData, amount: val });
+    if (errors.amount) {
+      setErrors({ ...errors, amount: '' });
     }
   };
 
@@ -86,41 +99,70 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, load
     setErrors({});
   };
 
+  const formattedAmount = isNaN(parseFloat(formData.amount))
+    ? '0.00'
+    : parseFloat(formData.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   return (
     <div className="glass-panel" id="transaction-input-panel">
       <div className="panel-header">
         <div className="panel-title-group">
-          <h2>Transaction Scanner</h2>
-          <p>Run real-time ML risk scoring and store records directly into PostgreSQL</p>
+          <h2>Evaluate Transaction</h2>
+          <p>Assess transaction variables against behavioral risk models and log to the audit ledger</p>
         </div>
       </div>
 
-      {/* Quick Presets Bar */}
+      {/* Interactive Virtual Debit/Credit Card HUD */}
+      <div className="credit-card-preview" aria-label="Interactive Virtual Payment Card">
+        <div className="card-top-row">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="emv-chip" title="EMV Smart Chip"></div>
+            <Wifi size={16} color="#94a3b8" style={{ transform: 'rotate(90deg)' }} />
+          </div>
+          <span className="card-badge">{formData.category || 'RETAIL'}</span>
+        </div>
+
+        <div className="card-number-display">
+          •••• &nbsp; •••• &nbsp; •••• &nbsp; {formData.card_last_four || '4242'}
+        </div>
+
+        <div className="card-bottom-row">
+          <div>
+            <div className="card-meta-label">Merchant Terminal</div>
+            <div className="card-meta-val">{formData.merchant || 'Merchant Terminal'}</div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div className="card-meta-label">Pending Total</div>
+            <div className="card-meta-val" style={{ fontSize: '0.95rem', fontVariantNumeric: 'tabular-nums' }}>
+              ${formattedAmount}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Test Scenarios Bar */}
       <div className="preset-bar">
-        <span className="preset-title">Quick Demos:</span>
+        <span className="preset-title">Test Scenarios:</span>
         <button
           type="button"
           className="preset-btn"
           onClick={() => applyPreset('normal')}
         >
-          <Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} />
-          Normal Dining ($15.20)
+          Coffee Shop ($15.20 - Domestic)
         </button>
         <button
           type="button"
           className="preset-btn"
           onClick={() => applyPreset('luxury')}
         >
-          <ShieldAlert size={12} style={{ display: 'inline', marginRight: '4px' }} />
-          Offshore Luxury ($1,450.00)
+          Luxury Goods ($1,450.00 - Foreign)
         </button>
         <button
           type="button"
           className="preset-btn"
           onClick={() => applyPreset('crypto')}
         >
-          <Zap size={12} style={{ display: 'inline', marginRight: '4px' }} />
-          High-Risk Crypto ($3,890.00)
+          Overseas Transfer ($3,890.00 - High Risk)
         </button>
       </div>
 
@@ -141,6 +183,14 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, load
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
             />
+            {/* Quick Amount Chips */}
+            <div className="amount-presets">
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Quick:</span>
+              <button type="button" className="amount-chip" onClick={() => setQuickAmount('25.00')}>$25</button>
+              <button type="button" className="amount-chip" onClick={() => setQuickAmount('150.00')}>$150</button>
+              <button type="button" className="amount-chip" onClick={() => setQuickAmount('1200.00')}>$1,200</button>
+              <button type="button" className="amount-chip" onClick={() => setQuickAmount('3500.00')}>$3,500</button>
+            </div>
             {errors.amount && <span className="input-error-msg">{errors.amount}</span>}
           </div>
 
@@ -252,15 +302,28 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, load
           </div>
         </div>
 
-        <button
-          type="submit"
-          id="btn-analyze-transaction"
-          className="submit-btn"
-          disabled={loading}
-        >
-          <Send size={18} />
-          {loading ? 'Evaluating Model & Writing to DB...' : 'Analyze & Save to Database'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+          <button
+            type="submit"
+            id="btn-analyze-transaction"
+            className="submit-btn"
+            disabled={loading}
+            style={{ flex: 1 }}
+          >
+            <Send size={16} />
+            {loading ? 'Processing Assessment...' : 'Evaluate & Record Transaction'}
+          </button>
+
+          <button
+            type="button"
+            className="page-btn"
+            onClick={handleReset}
+            title="Reset form"
+            style={{ padding: '0 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <RotateCcw size={15} /> Reset
+          </button>
+        </div>
       </form>
     </div>
   );
